@@ -1,8 +1,25 @@
+<div align="center">
+
+<img height="100" src="./web/public/images/logo.png" />
+
 # PluginMarket
 
 一个基于 **Nuxt4 + Go** 构建的插件分享与管理平台。
 
+
+![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)
+![Nuxt](https://img.shields.io/badge/Nuxt-4.4.4-00DC82?logo=nuxt&logoColor=white)
+[![GitHub release](https://img.shields.io/github/v/release/xiaoyanu/PluginMarket.svg)](../../releases/latest)
+
+</div>
+
+# 摘要
 PluginMarket 面向插件作者和使用者，提供插件发布、审核、搜索、下载、评论、回复、收藏以及站内通知等功能，同时提供管理员后台用于管理插件、用户、评论和系统通知。
+
+# 截图
+![](./resource/01.jpg)
+![](./resource/02.jpg)
+![](./resource/03.jpg)
 
 ## 功能特性
 
@@ -58,6 +75,7 @@ PluginMarket 面向插件作者和使用者，提供插件发布、审核、搜�
 
 ```text
 PluginMarket/
+├── resource/               # README.md 所需的资源文件
 ├── server/                 # Go 后端服务
 │   ├── config.yaml         # 后端运行配置示例
 │   ├── controller/         # HTTP 控制器和业务流程
