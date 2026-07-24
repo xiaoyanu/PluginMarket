@@ -1,0 +1,254 @@
+@import 'tailwindcss';
+
+@theme {
+    --shadow-pmbox: 0px 2px 20px rgba(0, 0, 0, 0.06);
+}
+
+
+@font-face {
+    font-family: "HarmonyOS_Sans_SC_Regular";
+    /*
+        提供以下CDN加速地址，均为国内CDN，当然你也可以选择本地字体文件
+        字体文件大小：955 KB，如果你不在意大小，直接使用本地字体文件即可
+    */
+    /*src: url(https://npm.elemecdn.com/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://cdn.jsdmirror.cn/npm/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://s4.zstatic.net/npm/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://cdn.jsdelivr.net/npm/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://npm.webcache.cn/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://npm.onmicrosoft.cn/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*src: url(https://cdn.bili33.top/npm/helloapi_assets@latest/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2) format("woff2");*/
+    /*noinspection CssUnknownTarget*/
+    src: url("~/assets/fonts/HarmonyOS_Sans_SC_Regular.subset.woff2") format("woff2");
+    font-display: swap;
+}
+
+
+* {
+    font-family: HarmonyOS_Sans_SC_Regular,
+    Inter, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    '微软雅黑', Arial, sans-serif !important;
+    outline: none;
+}
+
+
+body {
+    background: #F8FAFC;
+    outline: none;
+}
+
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #909399;
+}
+
+
+/* 页面过渡动画 */
+.globalPage-enter-active,
+.globalPage-leave-active {
+    transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.globalPage-enter-from {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+.globalPage-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+
+/* =用户盒子下拉动画 开始= */
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+.dropdown-fade-enter-active {
+    transition: all 0.2s ease-out;
+}
+
+.dropdown-fade-leave-active {
+    transition: all 0.2s ease-in;
+}
+
+.dropdown-fade-enter-to,
+.dropdown-fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* ElementPlus 自定义全局样式 */
+:root {
+    /* 分页圆角程度 */
+    --pageBox-diy: 15px;
+}
+
+
+/* 下拉圆角 */
+.el-popper.is-light {
+    border-radius: 10px !important;
+}
+
+.el-select-dropdown__wrap {
+    border-radius: 10px !important;
+
+    .el-tag {
+        border-radius: 8px;
+    }
+}
+
+
+/* 消息提示圆角 */
+.el-message {
+    border-radius: 10px !important;
+}
+
+/* 全站 el-dialog 统一风格 */
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog {
+    border-radius: 20px !important;
+    padding: 10px !important;
+    overflow: hidden !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__header {
+    margin-right: 0 !important;
+    padding: 20px 24px 10px !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__title {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__body {
+    padding: 10px 24px !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__footer {
+    padding: 10px 24px 20px !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__headerbtn {
+    top: 20px !important;
+    right: 20px !important;
+}
+
+.el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__headerbtn:hover .el-dialog__close {
+    color: #00BAAD !important;
+}
+
+
+/* 自定义分页样式 */
+.pageBox-diy {
+    border-radius: var(--pageBox-diy) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.pageBox-diy .is-first, .pageBox-diy .is-last, .pageBox-diy .el-pager li {
+    background-color: #FFF !important;
+}
+
+.pageBox-diy .is-first {
+    border-radius: var(--pageBox-diy) 0 0 var(--pageBox-diy) !important;
+}
+
+.pageBox-diy .is-last {
+    border-radius: 0 var(--pageBox-diy) var(--pageBox-diy) 0 !important;
+}
+
+/* 管理区手机端：弹窗、抽屉与常用表单统一适配 */
+@media (max-width: 767px) {
+    .el-overlay-dialog .pm-manage-dialog.pm-manage-dialog {
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+        max-height: calc(100dvh - 24px);
+        margin: 12px auto !important;
+        padding: 6px !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__header {
+        padding: 16px 16px 8px !important;
+    }
+
+    .el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__body {
+        min-height: 0;
+        padding: 8px 16px !important;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__footer {
+        padding: 8px 16px 14px !important;
+    }
+
+    .el-overlay-dialog .pm-manage-dialog.pm-manage-dialog .el-dialog__headerbtn {
+        top: 14px !important;
+        right: 14px !important;
+        width: 44px;
+        height: 44px;
+    }
+
+    .custom-btt-drawer.el-drawer {
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
+        height: calc(100dvh - 12px) !important;
+        max-height: calc(100dvh - 12px) !important;
+        margin: auto 8px 0 !important;
+    }
+
+    .custom-btt-drawer .el-drawer__header {
+        margin-bottom: 12px;
+        padding: 16px 16px 0;
+    }
+
+    .custom-btt-drawer .el-drawer__body {
+        min-width: 0;
+        padding: 0 16px 20px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .custom-btt-drawer .el-form-item {
+        display: block;
+    }
+
+    .custom-btt-drawer .el-form-item__label,
+    .custom-btt-drawer .el-form-item__content,
+    .custom-btt-drawer .el-input,
+    .custom-btt-drawer .el-select,
+    .custom-btt-drawer .el-alert,
+    .custom-btt-drawer .pm-editor {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .plugin-rules-popover.el-popper {
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}

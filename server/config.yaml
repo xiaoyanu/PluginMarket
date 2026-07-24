@@ -1,0 +1,27 @@
+server:
+  port: 8855  # 后端运行端口
+  mode: debug  # debug / release
+  webUrl: "https://pm.zxz.ee"  # 部署时改为站点公开 HTTPS 地址
+
+# 数据库配置
+database:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  dbname: tpm
+  charset: utf8mb4
+
+# Token密钥，强烈建议修改掉，不要使用默认
+jwt:
+  secret: "pluginmarket-jwt-secret-key-change-me"
+  expire: 72  # 小时
+
+# 上传路径配置
+uploads:
+  path: "./uploads"
+  maxSize: 1.5  # MB
+  avatars: "avatars"
+  images: "images"
+  frames: "frames"
+  titles: "titles"

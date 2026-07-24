@@ -1,0 +1,9 @@
+# PluginMarket local/server uploads
+server/uploads/
+
+# Keep generated/frontend artifacts out of git
+web/.output/
+web/.nuxt/
+web/.nitro/
+web/.cache/
+web/dist/
