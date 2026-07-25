@@ -39,12 +39,23 @@ const predefinedIconColors = [
   '#14B8A6', // 自定义通知青
   '#64748B', // 默认灰蓝
 ]
+const notificationIconNames = [
+  'PhAirplaneTaxiing', 'PhApplePodcastsLogo', 'PhArrowsCounterClockwise', 'PhBalloon', 'PhBarricade',
+  'PhBellRinging', 'PhBracketsCurly', 'PhBroom', 'PhBug', 'PhCake', 'PhCalendar', 'PhCalendarStar',
+  'PhCarrot', 'PhChatText', 'PhChats', 'PhChatsTeardrop', 'PhCheckCircle', 'PhCloudArrowDown',
+  'PhCloudArrowUp', 'PhCoffee', 'PhConfetti', 'PhCrown', 'PhCursorClick', 'PhDeviceMobileSpeaker',
+  'PhFire', 'PhHeart', 'PhImageSquare', 'PhLightbulb', 'PhMegaphone', 'PhNotification', 'PhPuzzlePiece',
+  'PhQrCode', 'PhSealCheck', 'PhSealWarning', 'PhShareNetwork', 'PhShieldWarning', 'PhShootingStar',
+  'PhSignOut', 'PhSketchLogo', 'PhSnapchatLogo', 'PhStar', 'PhStarFour', 'PhWarningCircle', 'PhXCircle',
+]
+
 
 const tableData = ref<NotificationItem[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const deleteLoading = ref(false)
 const dialogVisible = ref(false)
+const iconPickerVisible = ref(false)
 const deleteDialogVisible = ref(false)
 const editId = ref<number | null>(null)
 const deleteTarget = ref<NotificationItem | null>(null)
@@ -66,6 +77,11 @@ const form = reactive<NotificationForm>({
   published_at: null,
   expires_at: null,
 })
+
+const selectIcon = (name: string) => {
+  form.icon_name = name
+  iconPickerVisible.value = false
+}
 
 const dialogTitle = computed(() => editId.value ? '编辑通知' : '发布通知')
 const formatDate = (value?: string | null) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-'
@@ -289,21 +305,12 @@ onMounted(loadTable)
           <el-input v-model="form.content" maxlength="2000" show-word-limit @input="form.content = stripLineBreaks(form.content)" />
         </el-form-item>
         <div class="notification-form-grid grid grid-cols-2 gap-4">
-          <el-form-item prop="icon_name" :rules="[{ required: true, message: '请输入图标名称' }]">
-            <template #label>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span>图标名称</span>
-                <el-link
-                  href="https://phosphoricons.com/"
-                  target="_blank"
-                  type="primary"
-                  :underline="false"
-                >
-                  前往 Phosphor Icons 查找图标
-                </el-link>
-              </div>
-            </template>
-            <el-input v-model="form.icon_name" placeholder="例如 PhBellRinging" />
+          <el-form-item label="图标" prop="icon_name" :rules="[{ required: true, message: '请选择图标' }]">
+            <div class="flex min-w-0 items-center gap-3">
+              <manage-notification-icon class="shrink-0" :name="form.icon_name" :color="form.icon_color" :size="28" />
+              <span class="min-w-0 flex-1 truncate text-sm text-[#475569]">{{ form.icon_name }}</span>
+              <el-button plain @click="iconPickerVisible = true">选择图标</el-button>
+            </div>
           </el-form-item>
           <el-form-item label="图标颜色" prop="icon_color" :rules="[{ required: true, message: '请输入图标颜色' }]">
             <div class="flex items-center gap-3">
@@ -338,6 +345,22 @@ onMounted(loadTable)
       </template>
     </el-dialog>
 
+    <el-dialog v-model="iconPickerVisible" title="选择图标" width="720px" align-center class="pm-manage-dialog icon-picker-dialog">
+      <div class="icon-picker-grid">
+        <el-tooltip v-for="name in notificationIconNames" :key="name" :content="name" placement="top">
+          <button
+            type="button"
+            class="icon-picker-item"
+            :class="{ 'is-selected': form.icon_name === name }"
+            :aria-label="`选择 ${name}`"
+            @click="selectIcon(name)"
+          >
+            <manage-notification-icon :name="name" :color="form.icon_color" :size="28" />
+          </button>
+        </el-tooltip>
+      </div>
+    </el-dialog>
+
     <el-dialog v-model="deleteDialogVisible" title="删除通知" width="460px" align-center class="pm-manage-dialog">
       <div class="text-[#475569]">确定删除通知“{{ deleteTarget?.title }}”吗？删除后会同时清理所有用户的已读/隐藏状态记录。</div>
       <template #footer>
@@ -359,6 +382,31 @@ onMounted(loadTable)
   :deep(.el-radio-group) {
     display: flex;
     flex-wrap: wrap;
+  }
+}
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+}
+
+.icon-picker-item {
+  display: grid;
+  width: 64px;
+  height: 56px;
+  place-items: center;
+  justify-self: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+
+  &:hover,
+  &.is-selected {
+    border-color: #4e89ff;
+    background: #f3f7ff;
   }
 }
 </style>

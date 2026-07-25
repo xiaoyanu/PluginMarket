@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getPluginsByUser, type PluginListQuery } from '~/composables/api/public'
 import { DEFAULT_PLUGIN_ICON } from '~/config'
+import { getApiErrorMessage } from '~/composables/useApiFetch'
 
 type PluginListItem = {
   id: number
@@ -26,9 +27,7 @@ const userId = computed(() => {
   return Number.isInteger(value) && value > 0 ? value : 0
 })
 
-if (!userId.value) {
-  await navigateTo('/')
-}
+if (!userId.value) await navigateTo('/')
 
 const toPluginCardList = (list: PluginListItem[] = []) => list.map((item) => ({
   id: item.id,
@@ -44,11 +43,28 @@ const toPluginCardList = (list: PluginListItem[] = []) => list.map((item) => ({
 
 const filters = ref<Required<PluginListQuery>>({ type: -1, frameId: -1, tagId: -1 })
 const pagination = reactive({ page: 1 })
-const pluginData = ref<any>(await getPluginsByUser(userId.value, PAGE_SIZE, pagination.page, filters.value))
+const { data: pluginData, error: pluginError } = await useAsyncData(
+  () => `user-plugin-list-${userId.value}`,
+  () => getPluginsByUser(userId.value, PAGE_SIZE, pagination.page, filters.value),
+  { watch: [userId], default: () => ({ data: { list: [], total: 0 } }),
+  }
+)
 const userPluginList = computed(() => toPluginCardList(pluginData.value.data?.list ?? []))
 const pluginTotal = computed(() => pluginData.value.data?.total ?? 0)
-const userRes: any = await useApiFetch(`/user/${userId.value}`)
-const pageUserInfo = computed(() => userRes.data || null)
+const pageUserInfo = ref<any>(null)
+const loadUser = async () => {
+  try {
+    const response = await useApiFetch(`/user/${userId.value}`, { suppressErrorMessage: true })
+    if (response?.code !== 200) throw new Error(response?.msg)
+    pageUserInfo.value = response.data || null
+  } catch (error) {
+    ElMessage.error(getApiErrorMessage(error))
+    await navigateTo('/')
+  }
+}
+onMounted(() => {
+  if (userId.value) void loadUser()
+})
 
 const loadPlugins = async () => {
   pluginData.value = await getPluginsByUser(userId.value, PAGE_SIZE, pagination.page, filters.value)
@@ -68,7 +84,7 @@ const handleSidebarChange = async (value: Required<PluginListQuery>) => {
 watch(userId, async (value) => {
   if (!value) return navigateTo('/')
   pagination.page = 1
-  pluginData.value = await getPluginsByUser(value, PAGE_SIZE, pagination.page, filters.value)
+  if (import.meta.client) await loadUser()
 })
 </script>
 

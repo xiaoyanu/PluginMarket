@@ -28,6 +28,13 @@ export default defineNuxtConfig({
         'pinia-plugin-persistedstate/nuxt',
         '@element-plus/nuxt'
     ],
+    piniaPluginPersistedstate: {
+        cookieOptions: {
+            maxAge: 72 * 60 * 60,
+            path: '/',
+            sameSite: 'lax'
+        }
+    },
     css: [
         '~/assets/css/main.css'
     ],

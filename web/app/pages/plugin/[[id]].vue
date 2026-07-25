@@ -10,6 +10,7 @@ import { parseTargetCommentId, targetCommentElementId } from '~/utils/comment-ta
 import { toggleStar } from '~/composables/api/public'
 import { DEFAULT_PLUGIN_ICON } from '~/config'
 import { getPluginSeoMeta } from '~/utils/plugin-seo'
+import { getApiErrorMessage } from '~/composables/useApiFetch'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 
@@ -50,11 +51,12 @@ const { data: detailRes, pending: detailLoading, error: detailError } = await us
 
 const accessDeniedHandled = ref(false)
 watch([detailRes, detailError], async ([response, error]) => {
+  if (!import.meta.client) return
   if (accessDeniedHandled.value) return
   const message = response && response.code !== 200
-    ? response.msg || '暂时无法访问该插件'
+    ? response.msg
     : error
-      ? '插件详情加载失败'
+      ? getApiErrorMessage(error)
       : ''
   if (!message) return
   accessDeniedHandled.value = true
