@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import {config, MdEditor, type ToolbarNames, type UploadImgEvent} from 'md-editor-v3';
+import {MdEditor, type ToolbarNames, type UploadImgEvent} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
+import { configureMarkdownEditor } from '~/utils/md-editor-config';
+
+configureMarkdownEditor();
 
 const text = defineModel<string>({default: ''});
 const assetUrl = useAssetUrl();
@@ -11,41 +14,6 @@ const toolbars: ToolbarNames[] = [
   'revoke', 'next', '=',
   'prettier', 'pageFullscreen', 'preview', 'previewOnly', 'catalog'
 ];
-config({
-  editorExtensions: {
-    highlight: {
-      js: "https://s4.zstatic.net/ajax/libs/highlight.js/11.11.1/highlight.min.js",
-      css: {
-        'atom': {
-          light: "https://s4.zstatic.net/ajax/libs/highlight.js/11.11.1/styles/atom-one-light.min.css",
-          dark: 'https://s4.zstatic.net/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css'
-        }
-      }
-    },
-    cropper: {
-      js: "https://s4.zstatic.net/npm/cropperjs@1.6.2/dist/cropper.min.js",
-      css: "https://s4.zstatic.net/npm/cropperjs@1.6.2/dist/cropper.min.css"
-    },
-    echarts: {
-      js: "https://s4.zstatic.net/ajax/libs/echarts/6.0.0/echarts.min.js"
-    },
-    katex: {
-      js: "https://s4.zstatic.net/ajax/libs/KaTeX/0.16.4/katex.min.js",
-      css: "https://s4.zstatic.net/ajax/libs/KaTeX/0.16.4/katex.min.css"
-    },
-    mermaid: {
-      js: "https://s4.zstatic.net/ajax/libs/mermaid/11.12.0/mermaid.min.js"
-    },
-    prettier: {
-      parserMarkdownJs: "https://npm.onmicrosoft.cn/prettier@3.8.1/plugins/markdown.js",
-      standaloneJs: "https://npm.onmicrosoft.cn/prettier@3.8.1/standalone.js"
-    },
-    screenfull: {
-      js: "https://s4.zstatic.net/ajax/libs/screenfull.js/5.2.0/screenfull.js"
-    }
-  }
-});
-
 const onUploadImg: UploadImgEvent = async (files, callback) => {
   try {
     const urls = await Promise.all(files.map(async (file) => {

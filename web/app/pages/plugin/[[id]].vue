@@ -13,6 +13,9 @@ import { getPluginSeoMeta } from '~/utils/plugin-seo'
 import { getApiErrorMessage } from '~/composables/useApiFetch'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
+import { configureMarkdownEditor } from '~/utils/md-editor-config'
+
+configureMarkdownEditor()
 
 type ReplyTarget = {
   id: number
@@ -39,6 +42,7 @@ const downloadLoading = ref(false)
 const starLoading = ref(false)
 const pluginStarCount = ref(0)
 const pluginIsStarred = ref(false)
+const pageMounted = ref(false)
 
 const detailUrl = computed(() => (pluginId.value ? `/plugin/${pluginId.value}` : ''))
 const { data: detailRes, pending: detailLoading, error: detailError } = await useAsyncData(
@@ -121,9 +125,15 @@ const loadCommentList = async (page = commentPage.value, targetCommentId: number
 }
 
 watch(pluginData, (detail) => {
-  if (!import.meta.client || !detail || commentsLoaded.value) return
+  if (!pageMounted.value || !detail || commentsLoaded.value) return
   void loadCommentList(1, parseTargetCommentId(route.query.commentId as string | string[] | undefined)).catch(() => {})
 }, { immediate: true })
+
+onMounted(() => {
+  pageMounted.value = true
+  if (!pluginData.value || commentsLoaded.value) return
+  void loadCommentList(1, parseTargetCommentId(route.query.commentId as string | string[] | undefined)).catch(() => {})
+})
 
 watch(() => route.query.commentId, (value, previous) => {
   if (!commentsLoaded.value || value === previous) return
