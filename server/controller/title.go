@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"strconv"
+	"strings"
 
 	"pluginmarket-server/model"
 	"pluginmarket-server/repository"
@@ -9,6 +11,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+func validateTitleFields(name, description string) (string, string, error) {
+	name = strings.TrimSpace(name)
+	description = strings.TrimSpace(description)
+	if name == "" {
+		return "", "", errors.New("请输入称号名称")
+	}
+	if description == "" {
+		return "", "", errors.New("请输入称号描述")
+	}
+	if len([]rune(description)) > 500 {
+		return "", "", errors.New("称号描述不能超过500个字符")
+	}
+	return name, description, nil
+}
 
 // GetTitleList 获取所有称号
 // GET /api/title/list
@@ -26,9 +43,9 @@ func GetTitleList(c *gin.Context) {
 // CreateTitle 添加称号（管理员）
 // POST /api/title
 func CreateTitle(c *gin.Context) {
-	name := c.PostForm("name")
-	if name == "" {
-		utils.BadRequest(c, "请输入称号名称")
+	name, description, err := validateTitleFields(c.PostForm("name"), c.PostForm("description"))
+	if err != nil {
+		utils.BadRequest(c, err.Error())
 		return
 	}
 
@@ -44,7 +61,7 @@ func CreateTitle(c *gin.Context) {
 		return
 	}
 
-	title := &model.Title{Name: name, Icon: iconPath}
+	title := &model.Title{Name: name, Description: description, Icon: iconPath}
 	if err := repository.CreateTitle(title); err != nil {
 		utils.ServerError(c, "添加失败")
 		return
@@ -68,9 +85,13 @@ func UpdateTitle(c *gin.Context) {
 		return
 	}
 
-	if name := c.PostForm("name"); name != "" {
-		title.Name = name
+	name, description, fieldErr := validateTitleFields(c.PostForm("name"), c.PostForm("description"))
+	if fieldErr != nil {
+		utils.BadRequest(c, fieldErr.Error())
+		return
 	}
+	title.Name = name
+	title.Description = description
 
 	file, err := c.FormFile("icon")
 	if err == nil {

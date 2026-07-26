@@ -5,7 +5,7 @@ import type { UploadFile, UploadRawFile } from 'element-plus'
 
 definePageMeta({ layout: 'manage' })
 
-interface TitleItem { id: number; name: string; icon: string; created?: string }
+interface TitleItem { id: number; name: string; description: string; icon: string; created?: string }
 
 const assetUrl = useAssetUrl()
 const formatDate = (value?: string) => {
@@ -27,8 +27,11 @@ const activeId = ref<number | null>(null)
 const iconFile = ref<UploadRawFile | null>(null)
 const imgUrl = ref('')
 const formRef = ref()
-const form = reactive({ name: '' })
-const formRules = { name: [{ required: true, message: '请输入称号名称', trigger: 'blur' }] }
+const form = reactive({ name: '', description: '' })
+const formRules = {
+  name: [{ required: true, message: '请输入称号名称', trigger: 'blur' }],
+  description: [{ required: true, message: '请输入称号描述', trigger: 'blur' }],
+}
 const dialogTitle = computed(() => activeId.value ? '编辑称号' : '添加称号')
 const handleFilter = () => {
   pagination.page = 1
@@ -59,6 +62,7 @@ const loadTableData = async () => {
 const openDialog = (row?: TitleItem) => {
   activeId.value = row?.id || null
   form.name = row?.name || ''
+  form.description = row?.description || ''
   iconFile.value = null
   imgUrl.value = row?.icon ? assetUrl(row.icon) : ''
   showDialog.value = true
@@ -79,6 +83,7 @@ const submitForm = async () => {
   try {
     const body = new FormData()
     body.append('name', form.name.trim())
+    body.append('description', form.description.trim())
     if (iconFile.value) body.append('icon', iconFile.value)
     await useApiFetch(activeId.value ? `/title/${activeId.value}` : '/title', { method: activeId.value ? 'PUT' : 'POST', body })
     ElMessage.success(activeId.value ? '保存成功' : '添加成功')
@@ -126,6 +131,7 @@ onMounted(loadTableData)
         <el-table-column label="ID" width="80" prop="id" />
         <el-table-column label="图标" width="120"><template #default="{ row }"><div class="title-icon-preview"><img v-if="row.icon" :src="assetUrl(row.icon)" alt="" /><el-icon v-else><PhTag /></el-icon></div></template></el-table-column>
         <el-table-column label="称号名称" minWidth="200" prop="name" />
+        <el-table-column label="称号描述" minWidth="260" prop="description" show-overflow-tooltip />
         <el-table-column label="创建日期" minWidth="150"><template #default="{ row }">{{ formatDate(row.created) }}</template></el-table-column>
         <el-table-column label="操作" width="150"><template #default="{ row }"><el-button :icon="Edit" circle plain type="primary" @click="openDialog(row)" /><el-button :icon="Delete" circle plain type="danger" @click="handleDelete(row)" /></template></el-table-column>
         <template #empty><el-empty description="还没有任何称号哦＞﹏＜" style="user-select: none" /></template>
@@ -142,7 +148,7 @@ onMounted(loadTableData)
       </div>
     </manage-box>
     <el-dialog v-model="showDialog" :title="dialogTitle" width="500px" align-center class="pm-manage-dialog">
-      <div class="py-4 flex flex-col gap-6"><el-form ref="formRef" :model="form" :rules="formRules" label-position="top"><el-form-item label="称号名称" prop="name" required><el-input v-model="form.name" placeholder="请输入称号名称，例如：活跃分子" /></el-form-item><el-form-item label="称号图标" required><div class="flex flex-col gap-3"><el-upload class="avatar-uploader title-uploader" action="#" :show-file-list="false" :auto-upload="false" accept="image/png,image/jpeg,image/webp" :on-change="handleIconChange"><img v-if="imgUrl" :src="imgUrl" class="avatar" alt="" /><el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon></el-upload><div class="text-xs text-slate-400"><p>建议尺寸: 200x70 (长方形比例)</p><p>支持 JPG, PNG, WEBP</p><p v-if="activeId">不选择新图标则保留原图标</p></div></div></el-form-item></el-form></div>
+      <div class="py-4 flex flex-col gap-6"><el-form ref="formRef" :model="form" :rules="formRules" label-position="top"><el-form-item label="称号名称" prop="name" required><el-input v-model="form.name" placeholder="请输入称号名称，例如：活跃分子" /></el-form-item><el-form-item label="称号描述" prop="description" required><el-input v-model="form.description" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="请输入鼠标悬浮称号时展示的描述" /></el-form-item><el-form-item label="称号图标" required><div class="flex flex-col gap-3"><el-upload class="avatar-uploader title-uploader" action="#" :show-file-list="false" :auto-upload="false" accept="image/png,image/jpeg,image/webp" :on-change="handleIconChange"><img v-if="imgUrl" :src="imgUrl" class="avatar" alt="" /><el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon></el-upload><div class="text-xs text-slate-400"><p>建议尺寸: 200x70 (长方形比例)</p><p>支持 JPG, PNG, WEBP</p><p v-if="activeId">不选择新图标则保留原图标</p></div></div></el-form-item></el-form></div>
       <template #footer><div class="flex justify-end gap-3"><pm-button text="取消" color="white" @click="showDialog = false" /><pm-button :loading="submitLoading" :text="activeId ? '保存修改' : '确认添加'" @click="submitForm" /></div></template>
     </el-dialog>
     <manage-confirm-dialog v-model="deleteDialogVisible" title="删除称号" :message="`确认删除称号「${deleteTarget?.name || ''}」吗？`" confirm-text="确认删除" confirm-color="red" :loading="deleteLoading" @confirm="confirmDelete" />

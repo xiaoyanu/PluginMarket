@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {PhCalendarMinus, PhHouse, PhIdentificationBadge} from "@phosphor-icons/vue";
 import { DEFAULT_AVATAR, DEFAULT_USER_PROFILE } from '~/config'
+import { renderTitleDescription } from '~/utils/title-description'
 
 type UserCardInfo = {
   id?: number
@@ -8,7 +9,7 @@ type UserCardInfo = {
   nick?: string
   avatar?: string
   userdesc?: string
-  titles?: Array<{ id?: number; name?: string; icon?: string }>
+  titles?: Array<{ id?: number; name?: string; description?: string; icon?: string }>
   created?: string
 }
 
@@ -58,7 +59,10 @@ const goHome = () => {
         <div class="flex items-center gap-3 flex-wrap">
           <div class="font-bold text-[#1E293B] text-[20px]">{{ displayName }}</div>
           <div class="flex gap-2">
-            <img v-for="title in titles" :key="title.id || title.name" class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+            <el-tooltip v-for="title in titles" :key="title.id || title.name" placement="bottom" effect="light" popper-class="title-description-tooltip">
+              <template #content><div class="title-description-content" v-html="renderTitleDescription(title.description || title.name || '称号')" /></template>
+              <img class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+            </el-tooltip>
           </div>
         </div>
         <div class="text-sm line-clamp-4 text-[#64748B] select-text whitespace-pre-wrap break-words">

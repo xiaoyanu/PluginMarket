@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { DEFAULT_AVATAR, DEFAULT_USER_PROFILE } from '~/config'
+import { renderTitleDescription } from '~/utils/title-description'
 
 const props = defineProps<{
   author?: {
@@ -7,7 +8,7 @@ const props = defineProps<{
     nick?: string
     avatar?: string
     userdesc?: string
-    titles?: Array<{ id: number; name?: string; icon?: string }>
+    titles?: Array<{ id: number; name?: string; description?: string; icon?: string }>
   } | null
 }>()
 
@@ -36,7 +37,10 @@ const authorHomeUrl = computed(() => author.value?.id ? `/home/${author.value.id
         <div class="flex flex-col gap-0.5">
           <div class="font-bold text-[#1E293B] text-[16px]">{{ authorName }}</div>
           <div class="flex gap-1 flex-wrap">
-            <img v-for="title in authorTitles" :key="title.id" class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+            <el-tooltip v-for="title in authorTitles" :key="title.id" placement="bottom" effect="light" popper-class="title-description-tooltip">
+              <template #content><div class="title-description-content" v-html="renderTitleDescription(title.description || title.name || '称号')" /></template>
+              <img class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+            </el-tooltip>
           </div>
         </div>
       </div>
@@ -53,7 +57,10 @@ const authorHomeUrl = computed(() => author.value?.id ? `/home/${author.value.id
       <div class="flex flex-col gap-0.5">
         <div class="font-bold text-[#1E293B] text-[16px]">{{ authorName }}</div>
         <div class="flex gap-1 flex-wrap">
-          <img v-for="title in authorTitles" :key="title.id" class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+          <el-tooltip v-for="title in authorTitles" :key="title.id" placement="bottom" effect="light" popper-class="title-description-tooltip">
+            <template #content><div class="title-description-content" v-html="renderTitleDescription(title.description || title.name || '称号')" /></template>
+            <img class="titleIcon" :src="assetUrl(title.icon)" draggable="false" alt="">
+          </el-tooltip>
         </div>
       </div>
     </div>

@@ -252,3 +252,26 @@ body {
         overflow-wrap: anywhere;
     }
 }
+.title-description-tooltip {
+  max-width: min(360px, calc(100vw - 24px));
+}
+
+.title-description-content {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+.title-description-content p {
+  margin: 0 0 0.4em;
+}
+
+.title-description-content p:last-child {
+  margin-bottom: 0;
+}
+
+.title-description-content ul,
+.title-description-content ol {
+  margin: 0.25em 0;
+  padding-left: 1.4em;
+}

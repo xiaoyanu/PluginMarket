@@ -426,6 +426,7 @@ const cancelReply = () => {
 .frame-img {
   height: 32px;
   border: 2px solid #FFF;
+  border-radius: 20%;
   background-color: #FFF;
 }
 

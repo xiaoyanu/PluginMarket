@@ -98,6 +98,12 @@ func deleteUnusedUploads(
 	gracePeriod time.Duration,
 	loadReferences func() (map[string]struct{}, error),
 ) (uploadCleanupResult, error) {
+	lock, err := lockUploadRoot(root)
+	if err != nil {
+		return uploadCleanupResult{}, err
+	}
+	defer unlockUploadRoot(lock)
+
 	used, err := loadReferences()
 	if err != nil {
 		return uploadCleanupResult{}, err

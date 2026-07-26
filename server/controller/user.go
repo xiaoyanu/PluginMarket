@@ -3,10 +3,10 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/mail"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,7 +16,6 @@ import (
 	"pluginmarket-server/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -317,16 +316,10 @@ func doSaveFile(c *gin.Context, file *multipart.FileHeader, subDirKey string) (s
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Filename))
-	filename := uuid.New().String() + ext
-	dir := filepath.Join(config.C.Uploads.Path, subDir)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if _, err := src.Seek(0, io.SeekStart); err != nil {
 		return "", err
 	}
-	savePath := filepath.Join(dir, filename)
-	if err := c.SaveUploadedFile(file, savePath); err != nil {
-		return "", err
-	}
-	return "/uploads/" + subDir + "/" + filename, nil
+	return saveDeduplicatedUpload(config.C.Uploads.Path, subDir, ext, src, file.Size)
 }
 
 func validateImageUpload(size int64, filename, contentType string, maxSizeMB float64, allowedExtensions string) error {

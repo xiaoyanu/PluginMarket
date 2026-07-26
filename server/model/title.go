@@ -3,11 +3,12 @@ package model
 import "time"
 
 type Title struct {
-	ID      int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name    string    `json:"name" gorm:"size:255"`
-	Icon    string    `json:"icon" gorm:"size:255"`
-	Created time.Time `json:"created" gorm:"autoCreateTime"`
-	Updated time.Time `json:"updated" gorm:"autoUpdateTime"`
+	ID          int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name        string    `json:"name" gorm:"size:255"`
+	Description string    `json:"description" gorm:"size:500;not null;default:''"`
+	Icon        string    `json:"icon" gorm:"size:255"`
+	Created     time.Time `json:"created" gorm:"autoCreateTime"`
+	Updated     time.Time `json:"updated" gorm:"autoUpdateTime"`
 }
 
 func (Title) TableName() string {
