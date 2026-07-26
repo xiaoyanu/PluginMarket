@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -88,24 +87,6 @@ func saveDeduplicatedUpload(root, subDir, ext string, src io.Reader, expectedSiz
 		return "", err
 	}
 	return uploadURL(root, destination)
-}
-
-func lockUploadRoot(root string) (*os.File, error) {
-	root = filepath.Clean(root)
-	lock, err := os.OpenFile(root+".dedup.lock", os.O_CREATE|os.O_RDWR, 0600)
-	if err != nil {
-		return nil, err
-	}
-	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
-		lock.Close()
-		return nil, err
-	}
-	return lock, nil
-}
-
-func unlockUploadRoot(lock *os.File) {
-	_ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-	_ = lock.Close()
 }
 
 func safeUploadSubdirectory(root, subDir string) (string, error) {
