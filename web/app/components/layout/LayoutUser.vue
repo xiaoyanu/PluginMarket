@@ -37,7 +37,7 @@ const handleLogout = () => {
       </div>
     </div>
     <hr class="border-gray-200">
-    <div class="flex items-center gap-2 px-2 flex-wrap">
+    <div class="user-menu-grid">
       <pm-button text="我的主页" @click="navigateTo(homeUrl)">
         <template #icon>
           <PhHouse/>
@@ -73,5 +73,15 @@ const handleLogout = () => {
 </template>
 
 <style scoped lang="scss">
+.user-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 8px;
 
+  :deep(.pm-button) {
+    width: 100%;
+    min-width: 0;
+  }
+}
 </style>

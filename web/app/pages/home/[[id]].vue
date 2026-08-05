@@ -51,19 +51,23 @@ const { data: pluginData, error: pluginError } = await useAsyncData(
 )
 const userPluginList = computed(() => toPluginCardList(pluginData.value.data?.list ?? []))
 const pluginTotal = computed(() => pluginData.value.data?.total ?? 0)
-const pageUserInfo = ref<any>(null)
-const loadUser = async () => {
-  try {
+const { data: pageUserInfo, error: pageUserError } = await useAsyncData(
+  () => `user-profile-${userId.value}`,
+  async () => {
     const response = await useApiFetch(`/user/${userId.value}`, { suppressErrorMessage: true })
     if (response?.code !== 200) throw new Error(response?.msg)
-    pageUserInfo.value = response.data || null
-  } catch (error) {
-    ElMessage.error(getApiErrorMessage(error))
-    await navigateTo('/')
-  }
-}
-onMounted(() => {
-  if (userId.value) void loadUser()
+    return response.data || null
+  },
+  {
+    watch: [userId],
+    default: () => null,
+  },
+)
+
+watch(pageUserError, async (error) => {
+  if (!error || !import.meta.client) return
+  ElMessage.error(getApiErrorMessage(error))
+  await navigateTo('/')
 })
 
 const loadPlugins = async () => {
@@ -84,7 +88,6 @@ const handleSidebarChange = async (value: Required<PluginListQuery>) => {
 watch(userId, async (value) => {
   if (!value) return navigateTo('/')
   pagination.page = 1
-  if (import.meta.client) await loadUser()
 })
 </script>
 

@@ -7,6 +7,8 @@ const userStore = useUserStore()
 const assetUrl = useAssetUrl()
 const avatarUrl = computed(() => assetUrl(userStore.userInfo?.avatar, DEFAULT_AVATAR))
 const avatarTargetUrl = computed(() => userStore.isLogin ? '/manage' : '/user/auth/?mode=login')
+const isTouchDevice = ref(false)
+const avatarPopoverTrigger = computed(() => isTouchDevice.value ? 'click' : 'hover')
 const { count: notificationUnreadCount, refresh: refreshNotificationUnreadCount } = useNotificationUnreadCount()
 const { settings: siteSettings } = useSiteSettings()
 const logoUrl = computed(() => {
@@ -19,6 +21,15 @@ const goSearch = (keywords) => {
   }
   return navigateTo(`/search/${encodeURIComponent(keywords)}`);
 }
+
+const handleAvatarClick = () => {
+  if (isTouchDevice.value) return
+  return navigateTo(avatarTargetUrl.value)
+}
+
+onMounted(() => {
+  isTouchDevice.value = !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+})
 
 watch(() => userStore.token, (token) => {
   if (token) refreshNotificationUnreadCount()
@@ -56,9 +67,10 @@ watch(() => userStore.token, (token) => {
             placement="bottom-start"
             transition="dropdown-fade"
             :width="280"
+            :trigger="avatarPopoverTrigger"
         >
           <template #reference>
-            <nuxt-link :to="avatarTargetUrl" class="relative block">
+            <button type="button" class="relative block" @click="handleAvatarClick">
               <img
                   draggable="false"
                   :src="avatarUrl"
@@ -68,7 +80,7 @@ watch(() => userStore.token, (token) => {
               <span v-if="userStore.isLogin && notificationUnreadCount > 0" class="notification-badge">
                 {{ notificationUnreadCount > 99 ? '99+' : notificationUnreadCount }}
               </span>
-            </nuxt-link>
+            </button>
           </template>
           <template #default>
             <layout-user v-if="userStore.isLogin"/>
