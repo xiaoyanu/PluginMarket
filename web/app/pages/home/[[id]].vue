@@ -51,23 +51,29 @@ const { data: pluginData, error: pluginError } = await useAsyncData(
 )
 const userPluginList = computed(() => toPluginCardList(pluginData.value.data?.list ?? []))
 const pluginTotal = computed(() => pluginData.value.data?.total ?? 0)
-const { data: pageUserInfo, error: pageUserError } = await useAsyncData(
-  () => `user-profile-${userId.value}`,
-  async () => {
+const pageUserInfo = ref<any>(null)
+const userLoading = ref(true)
+
+const loadUser = async () => {
+  const requestedUserId = userId.value
+  userLoading.value = true
+  pageUserInfo.value = null
+  try {
     const response = await useApiFetch(`/user/${userId.value}`, { suppressErrorMessage: true })
     if (response?.code !== 200) throw new Error(response?.msg)
-    return response.data || null
-  },
-  {
-    watch: [userId],
-    default: () => null,
-  },
-)
+    if (requestedUserId === userId.value) pageUserInfo.value = response.data || null
+  } catch (error) {
+    if (requestedUserId !== userId.value) return
+    ElMessage.error(getApiErrorMessage(error))
+    await new Promise((resolve) => window.setTimeout(resolve, 500))
+    await navigateTo('/')
+  } finally {
+    if (requestedUserId === userId.value) userLoading.value = false
+  }
+}
 
-watch(pageUserError, async (error) => {
-  if (!error || !import.meta.client) return
-  ElMessage.error(getApiErrorMessage(error))
-  await navigateTo('/')
+onMounted(() => {
+  if (userId.value) void loadUser()
 })
 
 const loadPlugins = async () => {
@@ -88,13 +94,28 @@ const handleSidebarChange = async (value: Required<PluginListQuery>) => {
 watch(userId, async (value) => {
   if (!value) return navigateTo('/')
   pagination.page = 1
+  if (import.meta.client) await loadUser()
 })
 </script>
 
 <template>
   <div>
     <div class="flex items-center justify-center mb-3 md:mb-5 max-w-350 px-3 md:px-5 m-auto">
-      <user-card :user="pageUserInfo" responsive/>
+      <div v-if="userLoading" class="w-full bg-white rounded-[16px] md:rounded-[20px] shadow-pmbox p-4 md:p-5">
+        <div class="flex gap-4 md:gap-5 items-center">
+          <skeleton width="100" height="100" radius="20"/>
+          <div class="flex-1 min-w-0 flex flex-col gap-3">
+            <skeleton width="160" height="24"/>
+            <skeleton width="100%" height="16"/>
+            <skeleton width="70%" height="16"/>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <skeleton width="88" height="22" radius="5"/>
+          <skeleton width="180" height="22" radius="5"/>
+        </div>
+      </div>
+      <user-card v-else-if="pageUserInfo" :user="pageUserInfo" responsive/>
     </div>
     <div class="flex flex-col md:flex-row items-start gap-3 md:gap-5 max-w-350 m-auto px-3 md:px-5 mb-6 md:mb-10">
       <select-sidebar v-model="filters" responsive @change="handleSidebarChange"/>

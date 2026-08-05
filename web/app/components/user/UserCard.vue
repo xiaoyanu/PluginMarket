@@ -22,8 +22,7 @@ const showHomeButton = computed(() => !route.path.startsWith('/home/'))
 
 const userStore = useUserStore()
 const assetUrl = useAssetUrl()
-// 显式传入 null 表示目标用户仍在加载，不能回退到当前登录用户。
-const userInfo = computed(() => props.user !== undefined ? props.user : userStore.userInfo)
+const userInfo = computed(() => props.user || userStore.userInfo)
 
 const displayName = computed(() => userInfo.value?.nick || userInfo.value?.username || '未命名用户')
 const userDesc = computed(() => userInfo.value?.userdesc || DEFAULT_USER_PROFILE)
