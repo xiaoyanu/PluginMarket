@@ -15,6 +15,8 @@ export const useNotificationUnreadCount = () => {
     try {
       const response = await getNotifications(1, 1)
       count.value = Number(response?.data?.unread || 0)
+    } catch {
+      count.value = 0
     } finally {
       loading.value = false
     }

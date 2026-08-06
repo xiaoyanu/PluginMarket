@@ -1,5 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
-import {API_BASE, ASSET_BASE, DEFAULT_SITE_FAVICON} from './app/config'
+import {DEFAULT_SITE_FAVICON} from './app/config'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -19,8 +19,7 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
-            apiBase: API_BASE,
-            assetBase: ASSET_BASE
+            backendBase: ''
         }
     },
     modules: [

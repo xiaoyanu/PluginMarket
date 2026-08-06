@@ -30,6 +30,15 @@ const runHooks = async (hooks: any, context: any) => {
   for (const hook of Array.isArray(hooks) ? hooks : [hooks]) await hook(context)
 }
 
+const getBackendBases = () => {
+  const config = useRuntimeConfig()
+  const backendBase = String(config.public.backendBase || '').replace(/\/$/, '')
+  return {
+    apiBase: backendBase ? `${backendBase}/api` : API_BASE,
+    assetBase: backendBase || ASSET_BASE,
+  }
+}
+
 const getApiErrorCode = (error: any) =>
   error?.code ?? error?.data?.code ?? error?.response?._data?.code ?? error?.response?.status ?? error?.statusCode ?? error?.status
 
@@ -60,7 +69,7 @@ export const useApiFetch = <T = any>(
   options: ApiFetchOptions = {}
 ) => {
   const userStore = useUserStore()
-  const config = useRuntimeConfig()
+  const { apiBase } = getBackendBases()
   const {
     suppressErrorMessage = false,
     errorFallback,
@@ -73,7 +82,7 @@ export const useApiFetch = <T = any>(
 
   const fetchOptions: FetchOptions = {
     ...requestOptions,
-    baseURL: config.public.apiBase || API_BASE,
+    baseURL: apiBase,
 
     async onRequest(context) {
       const headers = new Headers(context.options.headers)
@@ -113,12 +122,11 @@ export const useApiFetch = <T = any>(
 }
 
 export const useAssetUrl = () => {
-  const config = useRuntimeConfig()
-  const assetBase = computed(() => String(config.public.assetBase || ASSET_BASE).replace(/\/$/, ''))
+  const { assetBase } = getBackendBases()
 
   return (url?: string, fallback = '') => {
     if (!url) return fallback
     if (/^https?:\/\//.test(url)) return url
-    return `${assetBase.value}${url.startsWith('/') ? url : `/${url}`}`
+    return `${assetBase}${url.startsWith('/') ? url : `/${url}`}`
   }
 }

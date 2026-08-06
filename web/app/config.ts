@@ -1,5 +1,6 @@
 // 后端地址
-const API_HOST = 'https://pm.zxz.ee/service'
+// const API_HOST = 'https://pm.zxz.ee/service'
+const API_HOST = 'http://172.27.232.252:8855'
 
 export const siteConfig = {
   siteLogo: '/images/logo.png',
