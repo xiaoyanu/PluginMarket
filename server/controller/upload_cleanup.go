@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"pluginmarket-server/repository"
 )
 
 const uploadCleanupGracePeriod = time.Hour
@@ -149,6 +151,56 @@ func deleteUnusedUploads(
 	}
 
 	return result, nil
+}
+
+func loadCurrentUploadReferences() (map[string]struct{}, error) {
+	values, err := repository.GetUploadReferenceValues()
+	if err != nil {
+		return nil, err
+	}
+	return extractUploadReferences(values), nil
+}
+
+func deleteUnreferencedPluginUploads(root string, candidates map[string]struct{}, loadReferences func() (map[string]struct{}, error)) error {
+	if len(candidates) == 0 {
+		return nil
+	}
+	lock, err := lockUploadRoot(root)
+	if err != nil {
+		return err
+	}
+	defer unlockUploadRoot(lock)
+
+	remaining, err := loadReferences()
+	if err != nil {
+		return err
+	}
+	for reference := range candidates {
+		if reference == "" {
+			continue
+		}
+		if _, stillUsed := remaining[reference]; stillUsed {
+			continue
+		}
+		path, err := localPathForUpload(root, reference)
+		if err != nil {
+			return err
+		}
+		info, err := os.Lstat(path)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("关联上传路径不是普通文件: %s", reference)
+		}
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func uploadReferenceForFile(root, path string) (string, error) {

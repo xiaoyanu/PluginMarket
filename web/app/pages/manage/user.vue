@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CollectionTag, Delete, Key, Operation, Plus, View } from '@element-plus/icons-vue'
+import { Check, CollectionTag, Delete, Key, MessageBox, Operation, Plus, RefreshLeft, View } from '@element-plus/icons-vue'
 import { PhArticle, PhClock, PhEnvelope, PhFingerprint, PhLock, PhShieldCheck, PhUser } from '@phosphor-icons/vue'
 import dayjs from 'dayjs'
 import { DEFAULT_AVATAR } from '~/config'
@@ -22,6 +22,13 @@ interface UserItem {
 }
 interface ApiResponse<T> { code: number; msg: string; data?: T }
 interface PageData<T> { list: T[]; total: number }
+interface PluginItem {
+  id: number
+  name: string
+  type: number
+  status: number
+  created: string
+}
 
 const userStore = useUserStore()
 const assetUrl = useAssetUrl()
@@ -55,6 +62,15 @@ const powerSaving = ref(false)
 const deleteVisible = ref(false)
 const deleteTarget = ref<UserItem | null>(null)
 const deleteLoading = ref(false)
+
+const showPluginDialog = ref(false)
+const pluginLoading = ref(false)
+const pluginActionId = ref(0)
+const pluginTargetUser = ref<UserItem | null>(null)
+const pluginData = ref<PluginItem[]>([])
+const pluginPagination = reactive({ page: 1, pageSize: 10, total: 0 })
+const pluginDeleteVisible = ref(false)
+const pluginDeleteTarget = ref<PluginItem | null>(null)
 
 const formatDate = (value: string) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-'
 const currentUserId = computed(() => Number(userStore.userInfo?.id || 0))
@@ -202,6 +218,59 @@ const confirmDelete = async () => {
   }
 }
 
+const pluginStatusLabel = (status: number) => status === 0 ? '审核通过' : status === 2 ? '待审核' : '审核拒绝'
+const pluginStatusType = (status: number) => status === 0 ? 'success' : status === 2 ? 'warning' : 'danger'
+const loadUserPlugins = async () => {
+  if (!pluginTargetUser.value) return
+  pluginLoading.value = true
+  try {
+    const res = await useApiFetch<ApiResponse<PageData<PluginItem>>>(
+      `/admin/user/${pluginTargetUser.value.id}/plugins?page=${pluginPagination.page}&pageSize=${pluginPagination.pageSize}`,
+    )
+    pluginData.value = res.data?.list || []
+    pluginPagination.total = Number(res.data?.total || 0)
+  } finally {
+    pluginLoading.value = false
+  }
+}
+const openPlugins = async (row: UserItem) => {
+  pluginTargetUser.value = row
+  pluginPagination.page = 1
+  showPluginDialog.value = true
+  await loadUserPlugins()
+}
+const changePluginPage = (page: number) => {
+  pluginPagination.page = page
+  loadUserPlugins()
+}
+const updatePluginStatus = async (plugin: PluginItem, status: 0 | 2) => {
+  pluginActionId.value = plugin.id
+  try {
+    await useApiFetch(`/admin/plugin/${plugin.id}/status`, { method: 'PUT', body: { status } })
+    ElMessage.success(status === 0 ? '插件已审核通过' : '插件已设为待审核')
+    await loadUserPlugins()
+  } finally {
+    pluginActionId.value = 0
+  }
+}
+const requestPluginDelete = (plugin: PluginItem) => {
+  pluginDeleteTarget.value = plugin
+  pluginDeleteVisible.value = true
+}
+const confirmPluginDelete = async () => {
+  if (!pluginDeleteTarget.value) return
+  pluginActionId.value = pluginDeleteTarget.value.id
+  try {
+    await useApiFetch(`/admin/plugin/${pluginDeleteTarget.value.id}`, { method: 'DELETE' })
+    pluginDeleteVisible.value = false
+    if (pluginData.value.length === 1 && pluginPagination.page > 1) pluginPagination.page--
+    ElMessage.success('插件已删除')
+    await loadUserPlugins()
+  } finally {
+    pluginActionId.value = 0
+  }
+}
+
 onMounted(loadUsers)
 </script>
 
@@ -257,9 +326,10 @@ onMounted(loadUsers)
         <el-table-column label="注册时间" min-width="170">
           <template #default="{ row }">{{ formatDate(row.created) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="290" fixed="right">
           <template #default="{ row }">
             <el-tooltip content="查看信息"><el-button :icon="View" circle plain @click="openView(row)"/></el-tooltip>
+            <el-tooltip content="插件管理"><el-button :icon="MessageBox" circle plain @click="openPlugins(row)"/></el-tooltip>
             <el-tooltip content="称号管理"><el-button :icon="CollectionTag" circle plain @click="openTitles(row)"/></el-tooltip>
             <el-tooltip content="重置密码"><el-button :icon="Key" circle plain @click="openReset(row)"/></el-tooltip>
             <el-tooltip content="设置权限"><el-button :icon="Operation" circle plain :disabled="row.id === currentUserId" @click="openPower(row)"/></el-tooltip>
@@ -304,6 +374,28 @@ onMounted(loadUsers)
       </div>
     </el-dialog>
 
+    <el-dialog v-model="showPluginDialog" title="插件管理" width="900px" align-center class="pm-manage-dialog">
+      <div class="text-sm text-[#64748B] mb-4">正在管理 <strong class="text-[#00BAAD]">{{ pluginTargetUser?.username }}</strong> 的插件</div>
+      <el-table v-loading="pluginLoading" :data="pluginData" class="w-full pm-title-table">
+        <el-table-column prop="id" label="ID" width="80"/>
+        <el-table-column label="插件名称" min-width="180"><template #default="{ row }"><el-link :href="`/plugin/${row.id}`" target="_blank">{{ row.name }}</el-link></template></el-table-column>
+        <el-table-column label="类型" width="90"><template #default="{ row }">{{ row.type === 1 ? '收费' : '免费' }}</template></el-table-column>
+        <el-table-column label="状态" width="110"><template #default="{ row }"><el-tag :type="pluginStatusType(row.status)">{{ pluginStatusLabel(row.status) }}</el-tag></template></el-table-column>
+        <el-table-column label="发布时间" min-width="170"><template #default="{ row }">{{ formatDate(row.created) }}</template></el-table-column>
+        <el-table-column label="操作" width="150" fixed="right">
+          <template #default="{ row }">
+            <el-tooltip content="审核通过"><el-button :icon="Check" circle plain type="success" :disabled="pluginActionId !== 0 || row.status === 0" @click="updatePluginStatus(row, 0)"/></el-tooltip>
+            <el-tooltip content="设为待审核"><el-button :icon="RefreshLeft" circle plain type="warning" :disabled="pluginActionId !== 0 || row.status === 2" @click="updatePluginStatus(row, 2)"/></el-tooltip>
+            <el-tooltip content="删除插件"><el-button :icon="Delete" circle plain type="danger" :disabled="pluginActionId !== 0" @click="requestPluginDelete(row)"/></el-tooltip>
+          </template>
+        </el-table-column>
+        <template #empty><el-empty description="该用户暂无插件" :image-size="70"/></template>
+      </el-table>
+      <div v-if="pluginPagination.total > pluginPagination.pageSize" class="mt-6 flex justify-center">
+        <el-pagination layout="prev, pager, next" :total="pluginPagination.total" :page-size="pluginPagination.pageSize" v-model:current-page="pluginPagination.page" class="pageBox-diy" @current-change="changePluginPage"/>
+      </div>
+    </el-dialog>
+
     <el-dialog v-model="showTitleDialog" title="称号管理" width="500px" align-center class="pm-manage-dialog" :close-on-click-modal="!titleSaving" :close-on-press-escape="!titleSaving">
       <div v-loading="detailLoading" class="flex flex-col gap-4 py-2">
         <div class="text-sm text-[#64748B]">正在管理 <strong class="text-[#00BAAD]">{{ titleTargetUser?.username }}</strong> 的称号</div>
@@ -328,6 +420,7 @@ onMounted(loadUsers)
     </el-dialog>
 
     <manage-confirm-dialog v-model="deleteVisible" title="删除用户" :message="`确定删除用户「${deleteTarget?.username || ''}」吗？\n删除后该账号将无法登录，公开资料会显示为已注销用户。`" confirm-text="确认删除" confirm-color="red" :loading="deleteLoading" @confirm="confirmDelete"/>
+    <manage-confirm-dialog v-model="pluginDeleteVisible" title="删除插件" :message="`确定删除插件「${pluginDeleteTarget?.name || ''}」吗？\n删除后插件图片、评论、收藏及关联数据都会一并清理。`" confirm-text="确认删除" confirm-color="red" :loading="pluginActionId === pluginDeleteTarget?.id" @confirm="confirmPluginDelete"/>
   </div>
 </template>
 

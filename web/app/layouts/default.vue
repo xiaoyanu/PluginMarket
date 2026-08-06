@@ -9,7 +9,7 @@ const avatarUrl = computed(() => assetUrl(userStore.userInfo?.avatar, DEFAULT_AV
 const avatarTargetUrl = computed(() => userStore.isLogin ? '/manage' : '/user/auth/?mode=login')
 const isTouchDevice = ref(false)
 const avatarPopoverTrigger = computed(() => isTouchDevice.value ? 'click' : 'hover')
-const { count: notificationUnreadCount, refresh: refreshNotificationUnreadCount } = useNotificationUnreadCount()
+const { count: notificationUnreadCount, startPolling: startNotificationPolling, stopPolling: stopNotificationPolling } = useNotificationUnreadCount()
 const { settings: siteSettings } = useSiteSettings()
 const logoUrl = computed(() => {
   const logo = siteSettings.value.siteLogo
@@ -32,9 +32,14 @@ onMounted(() => {
 })
 
 watch(() => userStore.token, (token) => {
-  if (token) refreshNotificationUnreadCount()
-  else notificationUnreadCount.value = 0
+  if (token) startNotificationPolling()
+  else {
+    stopNotificationPolling()
+    notificationUnreadCount.value = 0
+  }
 }, { immediate: true })
+
+onBeforeUnmount(stopNotificationPolling)
 </script>
 
 <template>

@@ -160,6 +160,9 @@ http://127.0.0.1:3000
 
 前端 API 地址和资源地址由 `web/nuxt.config.ts` 配置。部署到其他环境时，请根据实际网络拓扑修改，不要把本机地址作为生产配置提交。
 
+也可以通过环境变量来给Nuxt前端传递后端服务器地址。
+例如 `NUXT_PUBLIC_BACKEND_BASE=https://pm.zxz.ee/service`
+
 ### 5. 检查服务
 
 ```bash

@@ -234,8 +234,30 @@ func DeletePlugin(id int) error {
 		if err := tx.Where("plugin_id = ?", id).Delete(&model.UserStar{}).Error; err != nil {
 			return err
 		}
-		return tx.Delete(&model.Plugin{}, id).Error
+		result := tx.Delete(&model.Plugin{}, id)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return nil
 	})
+}
+
+func GetPluginUploadReferenceValues(id int) ([]string, error) {
+	var plugin model.Plugin
+	if err := database.DB.First(&plugin, id).Error; err != nil {
+		return nil, err
+	}
+	values := []string{plugin.Icon, plugin.Content}
+	var comments []string
+	if err := database.DB.Model(&model.Comment{}).
+		Where("plugin = ? AND content LIKE ?", id, "%/uploads/%").
+		Pluck("content", &comments).Error; err != nil {
+		return nil, err
+	}
+	return append(values, comments...), nil
 }
 
 func IncrementPluginViews(id int) error {
@@ -420,6 +442,20 @@ func GetMyPlugins(userID int, keywords string, pluginType *int, status *int, pag
 	var total int64
 	query.Count(&total)
 
+	var plugins []model.PluginMyItem
+	err := query.Select("id, name, type, created, status, reject_msg").
+		Order("created DESC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Find(&plugins).Error
+	return plugins, total, err
+}
+
+func GetAdminPluginsByUser(userID, page, pageSize int) ([]model.PluginMyItem, int64, error) {
+	query := database.DB.Model(&model.Plugin{}).Where("user = ?", userID)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	var plugins []model.PluginMyItem
 	err := query.Select("id, name, type, created, status, reject_msg").
 		Order("created DESC").

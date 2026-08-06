@@ -36,6 +36,13 @@ export const getNotifications = (page = 1, pageSize = 20) => {
   })
 }
 
+export const getNotificationUnreadCount = () => {
+  return useApiFetch<{ code: number; msg: string; data: { unread: number } }>('/notification/unread-count', {
+    method: 'GET',
+    suppressErrorMessage: true,
+  })
+}
+
 export const markNotificationRead = (id: number) => {
   return useApiFetch(`/notification/${id}/read`, { method: 'PUT' })
 }

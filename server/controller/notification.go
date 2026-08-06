@@ -281,6 +281,16 @@ func GetNotificationList(c *gin.Context) {
 	utils.OKData(c, gin.H{"list": list, "total": total, "unread": unread})
 }
 
+// GetUnreadNotificationCount 获取当前用户未读通知数，供前端轻量轮询。
+func GetUnreadNotificationCount(c *gin.Context) {
+	unread, err := repository.GetUnreadNotificationCount(c.GetInt("userId"), c.GetInt("power"))
+	if err != nil {
+		utils.ServerError(c, "查询未读通知失败")
+		return
+	}
+	utils.OKData(c, gin.H{"unread": unread})
+}
+
 func MarkNotificationRead(c *gin.Context) {
 	id, ok := parseNotificationID(c)
 	if !ok {

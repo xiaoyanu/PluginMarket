@@ -204,12 +204,80 @@ func AdminDeletePlugin(c *gin.Context) {
 		return
 	}
 
+	values, err := repository.GetPluginUploadReferenceValues(id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		utils.NotFound(c, "插件不存在")
+		return
+	} else if err != nil {
+		utils.ServerError(c, "删除失败")
+		return
+	}
 	if err := repository.DeletePlugin(id); err != nil {
 		utils.ServerError(c, "删除失败")
 		return
 	}
+	if err := deleteUnreferencedPluginUploads(config.C.Uploads.Path, extractUploadReferences(values), loadCurrentUploadReferences); err != nil {
+		log.Printf("插件 %d 已删除，关联图片清理失败: %v", id, err)
+	}
 
 	utils.OKMsg(c, "删除成功")
+}
+
+func validateAdminPluginStatus(status int) error {
+	if status != 0 && status != 2 {
+		return errors.New("插件状态无效")
+	}
+	return nil
+}
+
+func adminPluginStatusNotification(previousStatus, nextStatus int) (pluginReviewEmailKind, bool) {
+	if previousStatus != 0 && nextStatus == 0 {
+		return pluginApprovedEmail, true
+	}
+	return "", false
+}
+
+// AdminUpdatePluginStatus 管理员将插件设为审核通过或待审核。
+func AdminUpdatePluginStatus(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id < 1 {
+		utils.BadRequest(c, "参数错误")
+		return
+	}
+	var req struct {
+		Status *int `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.Status == nil {
+		utils.BadRequest(c, "请求参数错误")
+		return
+	}
+	if err := validateAdminPluginStatus(*req.Status); err != nil {
+		utils.BadRequest(c, err.Error())
+		return
+	}
+	plugin, err := repository.GetPluginByID(id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		utils.NotFound(c, "插件不存在")
+		return
+	} else if err != nil {
+		utils.ServerError(c, "更新失败")
+		return
+	}
+	fields := map[string]interface{}{"status": *req.Status}
+	if *req.Status == 0 {
+		fields["reject_msg"] = ""
+	}
+	if err := repository.UpdatePluginFields(id, fields); errors.Is(err, gorm.ErrRecordNotFound) {
+		utils.NotFound(c, "插件不存在")
+		return
+	} else if err != nil {
+		utils.ServerError(c, "更新失败")
+		return
+	}
+	if kind, ok := adminPluginStatusNotification(plugin.Status, *req.Status); ok {
+		sendPluginReviewNotification(kind, plugin, "")
+	}
+	utils.OKMsg(c, "插件状态已更新")
 }
 
 // ===== 用户管理 =====
@@ -259,6 +327,29 @@ func AdminGetUserDetail(c *gin.Context) {
 		return
 	}
 	utils.OKData(c, user)
+}
+
+// AdminGetUserPlugins 获取指定用户的全部插件（包括未过审插件）。
+func AdminGetUserPlugins(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id < 1 {
+		utils.BadRequest(c, "参数错误")
+		return
+	}
+	if _, err := repository.GetUserByID(id); errors.Is(err, gorm.ErrRecordNotFound) {
+		utils.NotFound(c, "用户不存在")
+		return
+	} else if err != nil {
+		utils.ServerError(c, "查询失败")
+		return
+	}
+	page, pageSize := getPageParams(c)
+	list, total, err := repository.GetAdminPluginsByUser(id, page, pageSize)
+	if err != nil {
+		utils.ServerError(c, "查询失败")
+		return
+	}
+	utils.OKPage(c, list, total)
 }
 
 type adminUserAction string

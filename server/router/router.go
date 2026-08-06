@@ -93,6 +93,7 @@ func Setup() *gin.Engine {
 		notification := api.Group("/notification", middleware.AuthRequired())
 		{
 			notification.GET("/list", controller.GetNotificationList)
+			notification.GET("/unread-count", controller.GetUnreadNotificationCount)
 			notification.PUT("/read-all", controller.MarkAllNotificationsRead)
 			notification.PUT("/:id/read", controller.MarkNotificationRead)
 			notification.DELETE("/:id", controller.HideNotification)
@@ -141,11 +142,13 @@ func Setup() *gin.Engine {
 			admin.GET("/plugin/pending", controller.GetPendingPlugins)
 			admin.PUT("/plugin/:id/approve", controller.ApprovePlugin)
 			admin.PUT("/plugin/:id/reject", controller.RejectPlugin)
+			admin.PUT("/plugin/:id/status", controller.AdminUpdatePluginStatus)
 			admin.DELETE("/plugin/:id", controller.AdminDeletePlugin)
 
 			// 用户管理
 			admin.GET("/user/list", controller.AdminGetUserList)
 			admin.GET("/user/:id", controller.AdminGetUserDetail)
+			admin.GET("/user/:id/plugins", controller.AdminGetUserPlugins)
 			admin.PUT("/user/:id/reset-password", controller.AdminResetPassword)
 			admin.PUT("/user/:id/role", controller.AdminUpdateRole)
 			admin.PUT("/user/:id/titles", controller.AdminUpdateTitles)
