@@ -36,6 +36,7 @@ func main() {
 		&model.UserStar{},
 		&model.PluginFrame{},
 		&model.PluginTag{},
+		&model.PluginAccessState{},
 		&model.Setting{},
 		&model.Notification{},
 		&model.UserNotificationState{},

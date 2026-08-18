@@ -1,4 +1,5 @@
 import { API_BASE, ASSET_BASE } from '~/config'
+import { appendForwardedClientIpHeaders } from '~/utils/forwarded-headers'
 
 /** 统一响应数据结构 */
 interface ApiResponse<T = any> {
@@ -86,6 +87,9 @@ export const useApiFetch = <T = any>(
 
     async onRequest(context) {
       const headers = new Headers(context.options.headers)
+      if (import.meta.server) {
+        appendForwardedClientIpHeaders(headers, useRequestHeaders(['x-forwarded-for', 'x-real-ip']))
+      }
       if (userStore.token) headers.set('Authorization', `Bearer ${userStore.token}`)
       context.options.headers = headers
       await runHooks(onRequest, context)

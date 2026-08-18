@@ -12,6 +12,7 @@ export const siteConfig = {
   allowComment: true,
   skipAudit: false,
   allowUpload: true,
+  antiBrushPluginData: false,
   maxImageSize: 1.5,
   allowedImageExtensions: 'jpg,png,gif,webp',
   defaultAvatar: '/images/default-avatar.png',
@@ -79,6 +80,7 @@ export const DEFAULT_ALLOW_REGISTER = siteConfig.allowRegister
 export const DEFAULT_ALLOW_COMMENT = siteConfig.allowComment
 export const DEFAULT_SKIP_AUDIT = siteConfig.skipAudit
 export const DEFAULT_ALLOW_UPLOAD = siteConfig.allowUpload
+export const DEFAULT_ANTI_BRUSH_PLUGIN_DATA = siteConfig.antiBrushPluginData
 export const DEFAULT_MAX_IMAGE_SIZE = siteConfig.maxImageSize
 export const DEFAULT_ALLOWED_IMAGE_EXTENSIONS = siteConfig.allowedImageExtensions
 export const DEFAULT_PLUGIN_ICON = siteConfig.defaultPluginIcon

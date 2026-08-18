@@ -228,6 +228,9 @@ func DeletePlugin(id int) error {
 		if err := tx.Where("plugin_id = ?", id).Delete(&model.PluginTag{}).Error; err != nil {
 			return err
 		}
+		if err := tx.Where("plugin_id = ?", id).Delete(&model.PluginAccessState{}).Error; err != nil {
+			return err
+		}
 		if err := tx.Where("plugin = ?", id).Delete(&model.Comment{}).Error; err != nil {
 			return err
 		}

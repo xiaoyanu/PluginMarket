@@ -73,7 +73,10 @@ func GetPluginDetail(c *gin.Context) {
 	}
 
 	// 增加浏览量
-	repository.IncrementPluginViews(id)
+	if err := repository.RecordPluginViewAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
+		utils.ServerError(c, "记录浏览次数失败")
+		return
+	}
 
 	// 检查当前用户是否已收藏（如果已登录）
 	userID, _ := c.Get("userId")
@@ -455,7 +458,7 @@ func DownloadPlugin(c *gin.Context) {
 		return
 	}
 
-	if err := repository.IncrementPluginDownloads(id); err != nil {
+	if err := repository.RecordPluginDownloadAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
 		utils.ServerError(c, "下载次数记录失败")
 		return
 	}

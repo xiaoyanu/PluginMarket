@@ -6,6 +6,7 @@ import {
   DEFAULT_ALLOW_COMMENT,
   DEFAULT_ALLOW_REGISTER,
   DEFAULT_ALLOW_UPLOAD,
+  DEFAULT_ANTI_BRUSH_PLUGIN_DATA,
   DEFAULT_EMAIL_TEMPLATES,
   DEFAULT_MAX_IMAGE_SIZE,
   DEFAULT_NOTIFICATION_TEMPLATES,
@@ -117,7 +118,8 @@ const settings = reactive({
     allow_register: DEFAULT_ALLOW_REGISTER,
     allow_comment: DEFAULT_ALLOW_COMMENT,
     plugin_no_audit: DEFAULT_SKIP_AUDIT,
-    allow_upload_image: DEFAULT_ALLOW_UPLOAD
+    allow_upload_image: DEFAULT_ALLOW_UPLOAD,
+    plugin_anti_brush: DEFAULT_ANTI_BRUSH_PLUGIN_DATA,
   },
   upload: {
     image_max_size: DEFAULT_MAX_IMAGE_SIZE,
@@ -236,6 +238,7 @@ const applyFunctionSettings = (data: Record<string, string>) => {
   settings.function.allow_comment = parseBooleanSetting(data.allowComment, DEFAULT_ALLOW_COMMENT)
   settings.function.plugin_no_audit = parseBooleanSetting(data.skipAudit, DEFAULT_SKIP_AUDIT)
   settings.function.allow_upload_image = parseBooleanSetting(data.allowUpload, DEFAULT_ALLOW_UPLOAD)
+  settings.function.plugin_anti_brush = parseBooleanSetting(data.antiBrushPluginData, DEFAULT_ANTI_BRUSH_PLUGIN_DATA)
 }
 
 const copyUploadSettings = () => ({
@@ -410,6 +413,7 @@ const saveFunctionSettings = async () => {
         allowComment: String(settings.function.allow_comment),
         skipAudit: String(settings.function.plugin_no_audit),
         allowUpload: String(settings.function.allow_upload_image),
+        antiBrushPluginData: String(settings.function.plugin_anti_brush),
       },
     })
     ElMessage.success('功能设置已保存')
@@ -685,6 +689,14 @@ onMounted(loadSettings)
             <span class="text-xs text-[#94A3B8]">开启后则可以上传头像、插件图片等</span>
           </div>
           <el-switch v-model="settings.function.allow_upload_image" :loading="functionSaving" @change="saveFunctionSettings"/>
+        </div>
+        <div
+            class="flex items-center justify-between p-4 bg-[#F8FAFC] rounded-2xl border border-transparent hover:border-[#E2E8F0] transition-all">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-sm font-medium text-[#1E293B]">防刷插件数据</span>
+            <span class="text-xs text-[#94A3B8]">可有效降低刷查看量和下载量</span>
+          </div>
+          <el-switch v-model="settings.function.plugin_anti_brush" :loading="functionSaving" @change="saveFunctionSettings"/>
         </div>
       </div>
     </manage-box>
