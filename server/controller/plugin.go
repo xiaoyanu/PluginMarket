@@ -295,6 +295,12 @@ func pluginPublishStatus(power int, skipAudit bool) int {
 	return 2
 }
 
+func setStringFieldFromForm(fields map[string]interface{}, c *gin.Context, key string) {
+	if value, ok := c.GetPostForm(key); ok {
+		fields[key] = value
+	}
+}
+
 // EditPlugin 编辑插件
 // PUT /api/plugin/:id
 func EditPlugin(c *gin.Context) {
@@ -363,9 +369,7 @@ func EditPlugin(c *gin.Context) {
 		}
 		fields["url"] = downloadURL
 	}
-	if urlCode := c.PostForm("url_code"); urlCode != "" {
-		fields["url_code"] = urlCode
-	}
+	setStringFieldFromForm(fields, c, "url_code")
 
 	// 图标
 	file, err := c.FormFile("icon")
