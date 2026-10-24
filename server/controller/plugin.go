@@ -72,10 +72,11 @@ func GetPluginDetail(c *gin.Context) {
 		return
 	}
 
-	// 增加浏览量
-	if err := repository.RecordPluginViewAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
-		utils.ServerError(c, "记录浏览次数失败")
-		return
+	if shouldRecordPluginAccess(plugin.Status) {
+		if err := repository.RecordPluginViewAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
+			utils.ServerError(c, "记录浏览次数失败")
+			return
+		}
 	}
 
 	// 检查当前用户是否已收藏（如果已登录）
@@ -89,6 +90,10 @@ func GetPluginDetail(c *gin.Context) {
 
 func canAccessPluginDetail(status, ownerID, currentUserID, power int) bool {
 	return status == 0 || currentUserID == ownerID || power == 1
+}
+
+func shouldRecordPluginAccess(status int) bool {
+	return status == 0
 }
 
 // SearchPlugins 搜索插件
@@ -458,9 +463,11 @@ func DownloadPlugin(c *gin.Context) {
 		return
 	}
 
-	if err := repository.RecordPluginDownloadAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
-		utils.ServerError(c, "下载次数记录失败")
-		return
+	if shouldRecordPluginAccess(plugin.Status) {
+		if err := repository.RecordPluginDownloadAccess(id, c.ClientIP(), settingEnabled(repository.GetSetting("antiBrushPluginData"), false)); err != nil {
+			utils.ServerError(c, "下载次数记录失败")
+			return
+		}
 	}
 
 	utils.OKData(c, gin.H{
