@@ -1,6 +1,10 @@
 # PluginMarket local/server uploads
 server/uploads/
 
+# Keep Go test files local
+*_test.go
+.idea/
+
 # Keep generated/frontend artifacts out of git
 web/.output/
 web/.nuxt/
